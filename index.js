@@ -7,6 +7,7 @@ const fs = require('fs');
 const mode = process.argv[2];
 
 if (mode === 'train') {
+    // TODO it should track consonant and vowel placement
     const filename = process.argv[3];
     const modelName = process.argv[4] || 'model.txt';
 
@@ -50,6 +51,8 @@ if (mode === 'train') {
 
     fs.writeFileSync(modelName, JSON.stringify(json));
 } else if (mode === 'generate') {
+    // TODO; it should generate words with the same consonant / vowel cadence as model
+
     const filename = process.argv[3];
     const wordLength = process.argv[4];
     const wordCount = process.argv[5];
