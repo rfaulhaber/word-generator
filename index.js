@@ -12,13 +12,11 @@ if (mode === 'train') {
     const modelName = process.argv[4] || 'model.txt';
 
     const input = fs.readFileSync(filename, 'utf-8');
-    const specialChars = ['\'', '\n', ' ', '\r', '\t'];
+    const specialChars = ['\'', '-', '\n', ' ', '\r', '\t'];
 
     console.log(process.argv);
 
     const json = {};
-
-    let totalCount = 0;
 
     for (let i = 0; i < input.length - 1; i++) {
         const key = input[i];
@@ -31,21 +29,23 @@ if (mode === 'train') {
         if (json[key] === undefined) {
             json[key] = {};
             json[key][nextKey] = 1;
-            totalCount++;
+            json[key]['sum'] = 1;
         } else {
             if (json[key][nextKey] === undefined) {
                 json[key][nextKey] = 1;
-                totalCount++;
+                json[key]['sum'] = 1;
             } else {
-                json[key][nextKey] = json[key][nextKey] + 1;
-                totalCount++;
+                json[key][nextKey] += 1;
+                json[key]['sum'] += 1;
             }
         }
     }
 
     for (const key of Object.keys(json)) {
         for (const deepKey of Object.keys(json[key])) {
-            json[key][deepKey] = json[key][deepKey] / totalCount;
+            if (deepKey !== 'sum') {
+                json[key][deepKey] = json[key][deepKey] / json[key]['sum'];
+            }
         }
     }
 
@@ -74,26 +74,12 @@ if (mode === 'train') {
 }
 
 function makeWord(wordmap, wordLength) {
-    let word = '';
     const keys = Object.keys(wordmap);
 
-    for (let i = 0; i < wordLength; i += 2) {
-        const randomKey = keys[random(0, keys.length - 1)];
-        const values = wordmap[randomKey]
+    let word = getNextLetter(keys[random(0, keys.length - 1)], wordmap);
 
-        const diffs = [];
-        const diffKeys = [];
-        const randomVal = Math.random() / 100;
-
-        for (const key of Object.keys(values)) {
-            diffs.push(Math.abs(values[key] - randomVal));
-            diffKeys.push(key);
-        }
-
-        const index = diffs.indexOf(Math.min.apply(null, diffs));
-        const randomValue = diffKeys[index];
-
-        word += randomKey + randomValue;
+    for (let i = 1; i < wordLength; i++) {
+        word += getNextLetter(word[i - 1], wordmap);
     }
 
     return word;
@@ -101,4 +87,21 @@ function makeWord(wordmap, wordLength) {
 
 function random(min, max) {
    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getNextLetter(letter, wordMap) {
+    const values = wordMap[letter];
+
+    const diffs = [];
+    const diffKeys = [];
+    const randomVal = Math.random();
+
+    for (const key of Object.keys(values)) {
+        diffs.push(Math.abs(values[key] - randomVal));
+        diffKeys.push(key);
+    }
+
+    const index = diffs.indexOf(Math.min.apply(null, diffs));
+
+    return diffKeys[index];
 }
