@@ -85,16 +85,18 @@ function makeWord(wordmap, wordLength) {
     return word;
 }
 
-function random(min, max) {
-   return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 function getNextLetter(letter, wordMap) {
     const values = wordMap[letter];
 
+    const probabilities = Object.values(values).filter(value => value < 1);
+
     const diffs = [];
     const diffKeys = [];
-    const randomVal = Math.random();
+
+    const min = Math.min.apply(null, probabilities);
+    const max = Math.max.apply(null, probabilities);
+
+    const randomVal = randomFloat(min, max);
 
     for (const key of Object.keys(values)) {
         diffs.push(Math.abs(values[key] - randomVal));
@@ -104,4 +106,17 @@ function getNextLetter(letter, wordMap) {
     const index = diffs.indexOf(Math.min.apply(null, diffs));
 
     return diffKeys[index];
+}
+
+function random(min, max) {
+   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function randomFloat(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+function nextLetterState(currentState, lastLetter) {
+    const isVowel = letter => ['a', 'e', 'i', 'o', 'u'].includes(letter);
+    // TODO have this determine whether or not it should look for a consonant or a vowel next
 }
